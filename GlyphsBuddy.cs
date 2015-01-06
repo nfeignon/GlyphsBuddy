@@ -119,13 +119,6 @@ namespace Toto
 				Log("Not enough pigments to create inks");
 				return false;
 			}
-
-			if (!isTSMInscriptionFrameOpened())
-			{
-				Log("Opening inscription panel");
-				Lua.DoString("RunMacroText('/cast Inscription')");
-				await Buddy.Coroutines.Coroutine.Sleep(2000);
-			}
 			
 			Log("Creating " + inksToCreate.ToString() + " inks (" + (inksToCreate * 2).ToString() + "s)...");
 
@@ -138,6 +131,13 @@ namespace Toto
 					chunk = inksToCreate - i;
 				else
 					chunk = 100;
+					
+				if (!isTSMInscriptionFrameOpened())
+				{
+					Log("Opening inscription panel");
+					Lua.DoString("RunMacroText('/cast Inscription')");
+					await Buddy.Coroutines.Coroutine.Sleep(2000);
+				}
 					
 				string lua = "for i=1,GetNumTradeSkills() do if GetTradeSkillInfo(i)==\"Warbinder's Ink\" then CloseTradeSkill() DoTradeSkill(i, ";
 				lua += chunk.ToString();
@@ -206,7 +206,7 @@ namespace Toto
 			Lua.DoString("RunMacroText('/click _TSMStartCancelScanButton')");
 			
 			Log("Waiting until cancel scan is finished...");
-			if (!await Buddy.Coroutines.Coroutine.Wait(60000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
+			if (!await Buddy.Coroutines.Coroutine.Wait(120000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
 			{
 				Log("No auctions found to cancel!");
 				return false;
@@ -243,7 +243,7 @@ namespace Toto
 			
 			Log("Starting post scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartPostScanButton')");
-			await Buddy.Coroutines.Coroutine.Sleep(20000);
+			await Buddy.Coroutines.Coroutine.Sleep(120000);
 			
 			while (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
 			{
