@@ -65,9 +65,8 @@ namespace Toto
 		public async Task<bool> RootLogic()
         {
             Log("Start of Root Logic");
-			
 			Log("Go to auctioneer");
-			// await MoveTo(AH_WAYPOINT);
+			//await MoveTo(AH_WAYPOINT);
 			await MoveTo(AUCTIONEER_LOCATION);
 			await CancelUndercutAuctions();
 			
@@ -80,10 +79,9 @@ namespace Toto
 			await MoveTo(AUCTIONEER_LOCATION);
 			await PostAuctions();
 
+            await MillHerbs();
 			Log("Go to ink trader");
 			await MoveTo(TRADER_LOCATION);
-			
-			await MillHerbs();
 			await CreateInk();
 			await TradeInks();
 			await CraftGlyphs();
@@ -92,10 +90,10 @@ namespace Toto
 			// await MoveTo(AH_WAYPOINT);
 			await MoveTo(AUCTIONEER_LOCATION);
 			await PostAuctions();
-			
+
+            await MoveTo(MAILBOX_LOCATION);
 			Log("Waiting for 7200s");
-			await Buddy.Coroutines.Coroutine.Sleep(7200000);
-			
+			await Buddy.Coroutines.Coroutine.Sleep(10000);
             return false;
         }
 		
@@ -145,7 +143,7 @@ namespace Toto
 				Lua.DoString(lua);
 				
 				await Buddy.Coroutines.Coroutine.Sleep(2050 * chunk);
-				
+                KeyboardManager.KeyUpDown((char)Keys.Space);
 				KeyboardManager.AntiAfk();
 			}
 			await Buddy.Coroutines.Coroutine.Sleep(5000);
@@ -160,10 +158,10 @@ namespace Toto
 			
 			while (Lua.GetReturnVal<bool>("return TSMCraftNextButton:IsEnabled()", 0))
 			{
-				// you have to bind a macro with /click TSMCraftNextButton to F10
 				Log("Crafting...");
-				KeyboardManager.KeyUpDown((char)Keys.F10);
-				do {
+                // you have to bind a macro with /click TSMCraftNextButton to F10
+                KeyboardManager.KeyUpDown((char)Keys.F10);
+                do {
 					await Buddy.Coroutines.Coroutine.Sleep(2000);
 				} while (Me.IsCasting);
 				
@@ -204,8 +202,28 @@ namespace Toto
 			
 			Log("Starting cancel scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartCancelScanButton')");
-			
+
+            while (!isCancelScanDone())
+            {
+                if (Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0))
+                {
+                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                    KeyboardManager.KeyUpDown((char)Keys.F8);
+                    Log("Cancelling auction...");
+                }
+                else
+                {
+                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                }
+            }
+
+            await Buddy.Coroutines.Coroutine.Sleep(3000);
+            Log("Undercut auctions cancelled!");
+
+            return true;
+            /*
 			Log("Waiting until cancel scan is finished...");
+
 			if (!await Buddy.Coroutines.Coroutine.Wait(120000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
 			{
 				Log("No auctions found to cancel!");
@@ -220,7 +238,7 @@ namespace Toto
 				await Buddy.Coroutines.Coroutine.Sleep(250);
 				// you have to bind a macro with /click TSMAuctioningCancelButton to F8
 				KeyboardManager.KeyUpDown((char)Keys.F8);
-				Log("Cancelling auction...");
+                Log("Cancelling auction...");
 				
 				Log("Looking for more auctions to cancel...");
 				if (!await Buddy.Coroutines.Coroutine.Wait(20000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
@@ -232,7 +250,7 @@ namespace Toto
 			await Buddy.Coroutines.Coroutine.Sleep(5000);
 			Log("Undercut auctions cancelled!");
 			
-			return true;
+			return true;*/
 		}
 		
 		private async Task<bool> PostAuctions()
@@ -243,20 +261,40 @@ namespace Toto
 			
 			Log("Starting post scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartPostScanButton')");
+
+            while (!isPostScanDone())
+            {
+                if (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
+                {
+                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                    KeyboardManager.KeyUpDown((char)Keys.F9);
+                    Log("Posting auction...");
+                }
+                else
+                {
+                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                }
+            }
+
+            await Buddy.Coroutines.Coroutine.Sleep(3000);
+            Log("Auctions posted!");
+
+            return true;
+            /*
 			await Buddy.Coroutines.Coroutine.Sleep(120000);
 			
 			while (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
 			{
 				await Buddy.Coroutines.Coroutine.Sleep(500);
-				
-				// you have to bind a macro with /click TSMAuctioningPostButton to F9
+
+                // you have to bind a macro with /click TSMAuctioningPostButton to F9
 				KeyboardManager.KeyUpDown((char)Keys.F9);
 				Log("Posting auction...");
 			}
 			await Buddy.Coroutines.Coroutine.Sleep(10000);
 			Log("Auctions posted!");
 			
-			return true;
+			return true;*/
 		}
 		
 		private async Task<bool> LootMailbox()
@@ -358,6 +396,8 @@ namespace Toto
 		
 		private async Task<bool> initializeAH()
 		{
+            // reset tsm tweak
+            Lua.DoString("AliasPostScan = false; AliasCancelScan = false");
 			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == 8719);		// Auctioneer Fitch, Stormwind main AH
 			unit.Interact();
 			await Buddy.Coroutines.Coroutine.Sleep(3000);
@@ -413,6 +453,18 @@ namespace Toto
 			else
 				return true;
 		}
+
+        private bool isCancelScanDone()
+        {
+            const string lua = "return AliasCancelScan";
+            return Lua.GetReturnVal<bool>(lua, 0);
+        }
+
+        private bool isPostScanDone()
+        {
+            const string lua = "return AliasPostScan";
+            return Lua.GetReturnVal<bool>(lua, 0);
+        }
 		
 		private int getItemCount(string item)
 		{
