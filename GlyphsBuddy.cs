@@ -167,7 +167,7 @@ namespace Toto
 					await Buddy.Coroutines.Coroutine.Sleep(2000);
 				} while (Me.IsCasting);
 				
-				await Buddy.Coroutines.Coroutine.Sleep(1000);
+				await Buddy.Coroutines.Coroutine.Sleep(3000);
 				
 				if (isBagsFull())
 				{
