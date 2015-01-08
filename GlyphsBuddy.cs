@@ -38,6 +38,8 @@ namespace Toto
 		private MoveResult _lastMoveResult;
 		private WoWPoint _gotoLocation;
 		
+		private bool milling;
+
 		private static readonly WoWPoint AH_WAYPOINT = new WoWPoint(-8848.92, 642.36, 96.50);
 		private static readonly WoWPoint AUCTIONEER_LOCATION = new WoWPoint(-8816.13, 659.97, 98.11);
 		private static readonly WoWPoint MAILBOX_LOCATION = new WoWPoint(-8862.36, 638.29, 96.34);
@@ -46,6 +48,7 @@ namespace Toto
         public GlyphsBuddy()
         {
             Instance = this;
+			milling = false;
         }
 
         public override string Name
@@ -65,6 +68,8 @@ namespace Toto
 		public async Task<bool> RootLogic()
         {
             Log("Start of Root Logic");
+			milling = true;
+
 			Log("Go to auctioneer");
 			//await MoveTo(AH_WAYPOINT);
 			await MoveTo(AUCTIONEER_LOCATION);
@@ -79,9 +84,11 @@ namespace Toto
 			await MoveTo(AUCTIONEER_LOCATION);
 			await PostAuctions();
 
-            await MillHerbs();
+			milling = false;
+
 			Log("Go to ink trader");
 			await MoveTo(TRADER_LOCATION);
+			await MillHerbs();
 			await CreateInk();
 			await TradeInks();
 			await CraftGlyphs();
@@ -221,36 +228,6 @@ namespace Toto
             Log("Undercut auctions cancelled!");
 
             return true;
-            /*
-			Log("Waiting until cancel scan is finished...");
-
-			if (!await Buddy.Coroutines.Coroutine.Wait(120000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
-			{
-				Log("No auctions found to cancel!");
-				return false;
-			}
-
-			Log("Cancel scan finished!");
-			await Buddy.Coroutines.Coroutine.Sleep(5000);
-			
-			while (Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0))
-			{
-				await Buddy.Coroutines.Coroutine.Sleep(250);
-				// you have to bind a macro with /click TSMAuctioningCancelButton to F8
-				KeyboardManager.KeyUpDown((char)Keys.F8);
-                Log("Cancelling auction...");
-				
-				Log("Looking for more auctions to cancel...");
-				if (!await Buddy.Coroutines.Coroutine.Wait(20000, () => Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0)))
-				{
-					Log("No more auctions found to cancel");
-					break;
-				}
-			}
-			await Buddy.Coroutines.Coroutine.Sleep(5000);
-			Log("Undercut auctions cancelled!");
-			
-			return true;*/
 		}
 		
 		private async Task<bool> PostAuctions()
@@ -280,21 +257,6 @@ namespace Toto
             Log("Auctions posted!");
 
             return true;
-            /*
-			await Buddy.Coroutines.Coroutine.Sleep(120000);
-			
-			while (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
-			{
-				await Buddy.Coroutines.Coroutine.Sleep(500);
-
-                // you have to bind a macro with /click TSMAuctioningPostButton to F9
-				KeyboardManager.KeyUpDown((char)Keys.F9);
-				Log("Posting auction...");
-			}
-			await Buddy.Coroutines.Coroutine.Sleep(10000);
-			Log("Auctions posted!");
-			
-			return true;*/
 		}
 		
 		private async Task<bool> LootMailbox()
@@ -493,6 +455,12 @@ namespace Toto
 						_gotoLocation = WoWPoint.Zero;
 						WoWMovement.MoveStop();
 					}
+				}
+
+				if (milling && !Me.IsMoving)
+				{
+					if (isHerbInBag())
+						Lua.DoString("RunMacroText('/click TSMDestroyButton')");
 				}
 					
 			}
