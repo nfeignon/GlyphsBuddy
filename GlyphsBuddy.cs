@@ -160,7 +160,7 @@ namespace Toto
 				lua += ") break end end";
 				Lua.DoString(lua);
 				
-				await Buddy.Coroutines.Coroutine.Sleep(2050 * chunk);
+				await Buddy.Coroutines.Coroutine.Sleep(2050 * (chunk+1));
                 KeyboardManager.KeyUpDown((char)Keys.Space);
 				KeyboardManager.AntiAfk();
 			}
