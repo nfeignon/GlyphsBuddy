@@ -109,7 +109,7 @@ namespace Toto
 			int c = 0;
 			while (isHerbInBag())
 			{
-				await Buddy.Coroutines.Coroutine.Sleep(1000);
+				await Buddy.Coroutines.Coroutine.Sleep(2000);
 				Lua.DoString("RunMacroText('/click TSMDestroyButton')");
 				Log("Milling herbs...");
 				
@@ -180,11 +180,16 @@ namespace Toto
 				Log("Crafting...");
                 // you have to bind a macro with /click TSMCraftNextButton to F10
                 KeyboardManager.KeyUpDown((char)Keys.F10);
-                do {
-					await Buddy.Coroutines.Coroutine.Sleep(2000);
-				} while (Me.IsCasting);
+				await Buddy.Coroutines.Coroutine.Sleep(1000);
 				
-				await Buddy.Coroutines.Coroutine.Sleep(4000);
+				// Wait 10s or until 
+				if (!await Buddy.Coroutines.Coroutine.Wait(10000, () => Lua.GetReturnVal<bool>("return TSMCraftNextButton:IsEnabled()", 0)))
+				{
+					Log("No more glyphs to craft!");
+					break;
+				}
+				
+				await Buddy.Coroutines.Coroutine.Sleep(1000);
 				
 				if (isBagsFull())
 				{
@@ -203,6 +208,7 @@ namespace Toto
 					await Buddy.Coroutines.Coroutine.Sleep(1000);
 					KeyboardManager.AntiAfk();
 					KeyboardManager.KeyUpDown((char)Keys.Space);
+					await Buddy.Coroutines.Coroutine.Sleep(4000);
 					c = 0;
 				}
 				
