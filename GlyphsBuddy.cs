@@ -100,17 +100,28 @@ namespace Toto
 
             await MoveTo(MAILBOX_LOCATION);
 			Log("Waiting for 7200s");
-			await Buddy.Coroutines.Coroutine.Sleep(10000);
+			await Buddy.Coroutines.Coroutine.Sleep(7200000);
             return false;
         }
 		
 		private async Task<bool> MillHerbs()
 		{
+			int c = 0;
 			while (isHerbInBag())
 			{
 				await Buddy.Coroutines.Coroutine.Sleep(1000);
 				Lua.DoString("RunMacroText('/click TSMDestroyButton')");
 				Log("Milling herbs...");
+				
+				if (c > 70)
+				{
+					await Buddy.Coroutines.Coroutine.Sleep(1000);
+					KeyboardManager.AntiAfk();
+					KeyboardManager.KeyUpDown((char)Keys.Space);
+					c = 0;
+				}
+				
+				c++;
 			}
 			Log("No more herbs to mill");
 			return false;
@@ -163,6 +174,7 @@ namespace Toto
 
 			await populateGlyphsQueue();
 			
+			int c = 0;
 			while (Lua.GetReturnVal<bool>("return TSMCraftNextButton:IsEnabled()", 0))
 			{
 				Log("Crafting...");
@@ -172,7 +184,7 @@ namespace Toto
 					await Buddy.Coroutines.Coroutine.Sleep(2000);
 				} while (Me.IsCasting);
 				
-				await Buddy.Coroutines.Coroutine.Sleep(3000);
+				await Buddy.Coroutines.Coroutine.Sleep(4000);
 				
 				if (isBagsFull())
 				{
@@ -185,6 +197,16 @@ namespace Toto
 					await MoveTo(TRADER_LOCATION);
 					return await CraftGlyphs();
 				}
+				
+				if (c > 20)
+				{
+					await Buddy.Coroutines.Coroutine.Sleep(1000);
+					KeyboardManager.AntiAfk();
+					KeyboardManager.KeyUpDown((char)Keys.Space);
+					c = 0;
+				}
+				
+				c++;
 			}
 			return true;
 		}
@@ -301,7 +323,7 @@ namespace Toto
 				if (totalItems > 0)
 				{
 					await Buddy.Coroutines.Coroutine.Sleep(2000);
-					Lua.DoString("RunMacroText('/reload')");
+					Lua.DoString("ReloadUI()");
 					Log("Waiting 10s for UI to reload...");
 					await Buddy.Coroutines.Coroutine.Sleep(10000);		// FIXME: check when in game StyxWoW.IsInGame
 				}
