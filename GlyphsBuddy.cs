@@ -282,19 +282,18 @@ namespace Toto
 			
 			Log("Starting cancel scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartCancelScanButton')");
-
+			await Buddy.Coroutines.Coroutine.Sleep(250);
             while (!isCancelScanDone())
             {
+				await Buddy.Coroutines.Coroutine.Sleep(250);
                 if (Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0))
                 {
                     await Buddy.Coroutines.Coroutine.Sleep(250);
                     KeyboardManager.KeyUpDown((char)Keys.F8);
                     Log("Cancelling auction...");
                 }
-                else
-                {
-                    await Buddy.Coroutines.Coroutine.Sleep(250);
-                }
+                await Buddy.Coroutines.Coroutine.Sleep(250);
+                
             }
 
             await Buddy.Coroutines.Coroutine.Sleep(3000);
@@ -311,19 +310,17 @@ namespace Toto
 			
 			Log("Starting post scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartPostScanButton')");
-
+			await Buddy.Coroutines.Coroutine.Sleep(250);
             while (!isPostScanDone())
             {
+				await Buddy.Coroutines.Coroutine.Sleep(250);
                 if (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
                 {
                     await Buddy.Coroutines.Coroutine.Sleep(250);
                     KeyboardManager.KeyUpDown((char)Keys.F9);
                     Log("Posting auction...");
                 }
-                else
-                {
-                    await Buddy.Coroutines.Coroutine.Sleep(250);
-                }
+                await Buddy.Coroutines.Coroutine.Sleep(250);
             }
 
             await Buddy.Coroutines.Coroutine.Sleep(3000);
