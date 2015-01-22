@@ -40,11 +40,14 @@ namespace Toto
 		
 		private bool milling;
 
-		private static readonly WoWPoint AH_WAYPOINT = new WoWPoint(-8848.92, 642.36, 96.50);
-		private static readonly WoWPoint AUCTIONEER_LOCATION = new WoWPoint(-8816.13, 659.97, 98.11);
-		private static readonly WoWPoint MAILBOX_LOCATION = new WoWPoint(-8862.36, 638.29, 96.34);
-		private static readonly WoWPoint TRADER_LOCATION = new WoWPoint(-8862.07, 859.77, 99.61);
-
+		// default
+		private WoWPoint AH_WAYPOINT;
+		private WoWPoint AUCTIONEER_LOCATION;
+		private WoWPoint MAILBOX_LOCATION;
+		private WoWPoint TRADER_LOCATION;
+		private int _auctioneerId;
+		private int _inkTraderId;
+		
         public GlyphsBuddy()
         {
             Instance = this;
@@ -65,14 +68,35 @@ namespace Toto
 			}
         }
 		
+		private void initWaypoints() {
+			if (Me.MapId == 571) { // dalaran
+				AH_WAYPOINT = new WoWPoint(5763.545, 744.684, 653.6647);
+				AUCTIONEER_LOCATION = new WoWPoint(5927.629, 731.5903, 643.17);
+				MAILBOX_LOCATION = new WoWPoint(5887.521, 717.3115, 640.6613);
+				TRADER_LOCATION = new WoWPoint(5865.998, 707.1326, 643.272);
+				_auctioneerId = 35594;
+				_inkTraderId = 33027;
+			} else { // default SW
+				AH_WAYPOINT = new WoWPoint(-8848.92, 642.36, 96.50);
+				AUCTIONEER_LOCATION = new WoWPoint(-8816.13, 659.97, 98.11);
+				MAILBOX_LOCATION = new WoWPoint(-8862.36, 638.29, 96.34);
+				TRADER_LOCATION = new WoWPoint(-8862.07, 859.77, 99.61);
+				_auctioneerId = 8719;
+				_inkTraderId = 30730;
+			}
+		}
+		
 		public async Task<bool> RootLogic()
         {
+			Log("Init Root Logic");
+			initWaypoints();
             Log("Start of Root Logic");
 			milling = true;
 
 			Log("Go to auctioneer");
 			//await MoveTo(AH_WAYPOINT);
 			await MoveTo(AUCTIONEER_LOCATION);
+			
 			await CancelUndercutAuctions();
 			
 			Log("Go to mailbox");
@@ -99,6 +123,7 @@ namespace Toto
 			await PostAuctions();
 
             await MoveTo(MAILBOX_LOCATION);
+			
 			Log("Waiting for 7200s");
 			await Buddy.Coroutines.Coroutine.Sleep(7200000);
             return false;
@@ -217,7 +242,7 @@ namespace Toto
 			return true;
 		}
 		
-		public async Task<bool> MoveTo(WoWPoint destination)
+		public async Task<bool> MoveTo2(WoWPoint destination)
         {
 			_gotoLocation = destination;
 			
@@ -228,6 +253,23 @@ namespace Toto
 			Log("Arrived to destination!");
             return true;
         }
+		
+		public async Task<bool> MoveTo(WoWPoint destination)
+        {
+			while (destination.DistanceSqr(Me.Location) > 16) {
+				Navigator.MoveTo(destination);
+				await Buddy.Coroutines.Coroutine.Sleep(10);
+			}
+			return true;
+        }
+		
+		public async Task<bool> FlyTo(WoWPoint destination) {
+			while (Flightor.MountHelper.CanMount && destination.DistanceSqr(Me.Location) > 16) {
+				Flightor.MoveTo(destination);
+				await Buddy.Coroutines.Coroutine.Sleep(10);
+			}
+			return true;
+		}
 		
 		private async Task<bool> CancelUndercutAuctions()
 		{
@@ -352,7 +394,7 @@ namespace Toto
 			Lua.DoString("RunMacroText('/click _TSMStartGatheringButton')");
 			await Buddy.Coroutines.Coroutine.Sleep(2000);
 			
-			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == 30730);		// Stanly McCormick, inscription supplies stormwind
+			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == _inkTraderId);		// Stanly McCormick, inscription supplies stormwind
 			unit.Interact();
 			await Buddy.Coroutines.Coroutine.Sleep(2000);
 
@@ -388,7 +430,7 @@ namespace Toto
 		{
             // reset tsm tweak
             Lua.DoString("AliasPostScan = false; AliasCancelScan = false");
-			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == 8719);		// Auctioneer Fitch, Stormwind main AH
+			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == _auctioneerId);		// Auctioneer Fitch, Stormwind main AH
 			unit.Interact();
 			await Buddy.Coroutines.Coroutine.Sleep(3000);
 			if (!isAuctionFrameOpened()) {
