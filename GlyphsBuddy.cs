@@ -84,7 +84,7 @@ namespace Toto
 				MAILBOX_LOCATION = new WoWPoint(-8862.36, 638.29, 96.34);
 				TRADER_LOCATION = new WoWPoint(-8862.07, 859.77, 99.61);
 				_auctioneerId = 8719;
-				_inkTraderId = 30730;
+				_inkTraderId = 30730;       	// Stanly McCormick, inscription supplies stormwind
 				_mailboxId = 197135;		// mailbox in front of AH
 			}
 		}
@@ -117,7 +117,9 @@ namespace Toto
 			await MoveTo(TRADER_LOCATION);
 			await MillHerbs();
 			await CreateInk();
-			await TradeInks();
+			await TradeInks(_inkTraderId);
+			if (Me.MapId == 571) // in dalaran, parchments are not sell by the ink trader
+				await TradeInks(28723); // npc right beside
 			await CraftGlyphs();
 			
 			Log("Go to auctioneer");
@@ -126,9 +128,9 @@ namespace Toto
 			await PostAuctions();
 
             await MoveTo(MAILBOX_LOCATION);
-			
-			Log("Waiting for 7200s");
-			await Buddy.Coroutines.Coroutine.Sleep(7200000);
+			int waiting = Rand.Next(20000, 120000);
+			Log("Waiting for " + waiting + "s");
+			await Buddy.Coroutines.Coroutine.Sleep(waiting);
             return false;
         }
 		
@@ -282,17 +284,17 @@ namespace Toto
 			
 			Log("Starting cancel scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartCancelScanButton')");
-			await Buddy.Coroutines.Coroutine.Sleep(250);
+			await Buddy.Coroutines.Coroutine.Sleep(100);
             while (!isCancelScanDone())
             {
-				await Buddy.Coroutines.Coroutine.Sleep(250);
+				await Buddy.Coroutines.Coroutine.Sleep(100);
                 if (Lua.GetReturnVal<bool>("return TSMAuctioningCancelButton:IsEnabled()", 0))
                 {
-                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                    await Buddy.Coroutines.Coroutine.Sleep(100);
                     KeyboardManager.KeyUpDown((char)Keys.F8);
                     Log("Cancelling auction...");
                 }
-                await Buddy.Coroutines.Coroutine.Sleep(250);
+                await Buddy.Coroutines.Coroutine.Sleep(100);
                 
             }
 
@@ -310,17 +312,17 @@ namespace Toto
 			
 			Log("Starting post scan...");
 			Lua.DoString("RunMacroText('/click _TSMStartPostScanButton')");
-			await Buddy.Coroutines.Coroutine.Sleep(250);
+			await Buddy.Coroutines.Coroutine.Sleep(100);
             while (!isPostScanDone())
             {
-				await Buddy.Coroutines.Coroutine.Sleep(250);
+				await Buddy.Coroutines.Coroutine.Sleep(100);
                 if (Lua.GetReturnVal<bool>("return TSMAuctioningPostButton:IsEnabled()", 0))
                 {
-                    await Buddy.Coroutines.Coroutine.Sleep(250);
+                    await Buddy.Coroutines.Coroutine.Sleep(100);
                     KeyboardManager.KeyUpDown((char)Keys.F9);
                     Log("Posting auction...");
                 }
-                await Buddy.Coroutines.Coroutine.Sleep(250);
+                await Buddy.Coroutines.Coroutine.Sleep(100);
             }
 
             await Buddy.Coroutines.Coroutine.Sleep(3000);
@@ -383,7 +385,7 @@ namespace Toto
 			return true;
 		}
 		
-		private async Task<bool> TradeInks()
+		private async Task<bool> TradeInks(int traderId)
 		{
 			Log("Trading inks...");
 			
@@ -394,7 +396,7 @@ namespace Toto
 			Lua.DoString("RunMacroText('/click _TSMStartGatheringButton')");
 			await Buddy.Coroutines.Coroutine.Sleep(2000);
 			
-			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == _inkTraderId);		// Stanly McCormick, inscription supplies stormwind
+			WoWUnit unit = ObjectManager.GetObjectsOfTypeFast<WoWUnit>().FirstOrDefault(u => u.Entry == traderId);	
 			unit.Interact();
 			await Buddy.Coroutines.Coroutine.Sleep(2000);
 
