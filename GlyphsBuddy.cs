@@ -47,6 +47,7 @@ namespace Toto
 		private WoWPoint TRADER_LOCATION;
 		private int _auctioneerId;
 		private int _inkTraderId;
+		private int _mailboxId;
 		
         public GlyphsBuddy()
         {
@@ -69,13 +70,14 @@ namespace Toto
         }
 		
 		private void initWaypoints() {
-			if (Me.MapId == 571) { // dalaran
+			if (Me.MapId == 571) { // dalaran, behind the ink trader
 				AH_WAYPOINT = new WoWPoint(5763.545, 744.684, 653.6647);
 				AUCTIONEER_LOCATION = new WoWPoint(5927.629, 731.5903, 643.17);
 				MAILBOX_LOCATION = new WoWPoint(5887.521, 717.3115, 640.6613);
 				TRADER_LOCATION = new WoWPoint(5865.998, 707.1326, 643.272);
 				_auctioneerId = 35594;
 				_inkTraderId = 33027;
+				_mailboxId = 191955;
 			} else { // default SW
 				AH_WAYPOINT = new WoWPoint(-8848.92, 642.36, 96.50);
 				AUCTIONEER_LOCATION = new WoWPoint(-8816.13, 659.97, 98.11);
@@ -83,6 +85,7 @@ namespace Toto
 				TRADER_LOCATION = new WoWPoint(-8862.07, 859.77, 99.61);
 				_auctioneerId = 8719;
 				_inkTraderId = 30730;
+				_mailboxId = 197135;		// mailbox in front of AH
 			}
 		}
 		
@@ -337,7 +340,7 @@ namespace Toto
 			do
 			{
 				Log("Looting mailbox...");
-				var mailBox = ObjectManager.GetObjectsOfTypeFast<WoWGameObject>().FirstOrDefault(u => u.Entry == 197135);		// mailbox in front of AH
+				var mailBox = ObjectManager.GetObjectsOfTypeFast<WoWGameObject>().FirstOrDefault(u => u.Entry == _mailboxId);
 				mailBox.Interact();
 				await Buddy.Coroutines.Coroutine.Sleep(2000);
 
