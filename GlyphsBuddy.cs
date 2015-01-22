@@ -118,7 +118,7 @@ namespace Toto
 			await MillHerbs();
 			await CreateInk();
 			await TradeInks(_inkTraderId);
-			if (Me.MapId == 571) // in dalaran, parchments are not sell by the ink trader
+			if (Me.MapId == 571) // in dalaran, parchments are not sold by the ink trader
 				await TradeInks(28723); // npc right beside
 			await CraftGlyphs();
 			
