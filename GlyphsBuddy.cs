@@ -128,8 +128,10 @@ namespace Toto
 			await PostAuctions();
 
             await MoveTo(MAILBOX_LOCATION);
-			int waiting = Rand.Next(20000, 120000);
-			Log("Waiting for " + waiting + "s");
+			
+			//int waiting = Rand.Next(20000, 120000);
+			int waiting = 7200000;
+			Log("Waiting for " + waiting/1000 + "s");
 			await Buddy.Coroutines.Coroutine.Sleep(waiting);
             return false;
         }
