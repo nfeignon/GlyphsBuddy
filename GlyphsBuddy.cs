@@ -265,6 +265,8 @@ namespace Toto
 				Navigator.MoveTo(destination);
 				await Buddy.Coroutines.Coroutine.Sleep(10);
 			}
+			
+			await Buddy.Coroutines.Coroutine.Sleep(2000);
 			return true;
         }
 		
@@ -273,6 +275,8 @@ namespace Toto
 				Flightor.MoveTo(destination);
 				await Buddy.Coroutines.Coroutine.Sleep(10);
 			}
+			
+			await Buddy.Coroutines.Coroutine.Sleep(2000);
 			return true;
 		}
 		
